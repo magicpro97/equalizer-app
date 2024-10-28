@@ -6,27 +6,27 @@ st.write(
     "This is a simple equalizer app that allows you to adjust the levels of different frequency bands."
 )
 
-staudio = st.empty()  # Placeholder for audio playback
+st_audio = st.empty()  # Placeholder for audio playback
+recorder = None  # Placeholder for the recorder object
 # Add buttons to apply and reset the equalizer settings in the same row
 col0, col1, col2 = st.columns([5, 3, 2])
 
-# Initialize session state for my_recorder_output if it doesn't exist
-if 'my_recorder_output' not in st.session_state:
-    st.session_state.my_recorder_output = None
-
-def audio_callback():
-    if st.session_state.my_recorder_output:
-        audio_bytes = st.session_state.my_recorder_output['bytes']
-        st.audio(audio_bytes)
+def audio_callback(audio_bytes):
+    st_audio.audio(audio_bytes, format="audio/wav")
 
 with col0:
     col0.subheader("Audio Source")
     source = st.selectbox("Select Audio Source", ["Microphone", "File Upload"], placeholder="Select an audio source")
     if source == "File Upload":
         uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
+        if uploaded_file:
+            st.session_state.my_recorder_output = uploaded_file
+            audio_callback(uploaded_file.read())
     else:
         st.write("Using microphone input.")
-        mic_recorder(start_prompt="🔴", stop_prompt="⏹️", key='recorder', callback=audio_callback)
+        recorder = mic_recorder(start_prompt="🔴", stop_prompt="⏹️", key='recorder')
+        if recorder:
+            audio_callback(recorder['bytes'])
 
 with col1:
     col1.subheader("Equalizer Settings")
