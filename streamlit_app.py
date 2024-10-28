@@ -1,12 +1,19 @@
 import streamlit as st
+from streamlit_mic_recorder import mic_recorder
 
 st.title("🎈 Equalizer")
 st.write(
     "This is a simple equalizer app that allows you to adjust the levels of different frequency bands."
 )
 
+staudio = st.empty()  # Placeholder for audio playback
 # Add buttons to apply and reset the equalizer settings in the same row
 col0, col1, col2 = st.columns([3, 1, 1])
+
+def audio_callback():
+    if st.session_state.my_recorder_output:
+        audio_bytes = st.session_state.my_recorder_output['bytes']
+        st.audio(audio_bytes)
 
 with col0:
     col0.subheader("Audio Source")
@@ -15,8 +22,7 @@ with col0:
         uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
     else:
         st.write("Using microphone input.")
-        # Request microphone access if needed
-    
+        mic_recorder(start_prompt="🔴", stop_prompt="⏹️", key='recorder', callback=audio_callback)
 
 with col1:
     col1.subheader("Equalizer Settings")
