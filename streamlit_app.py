@@ -10,6 +10,10 @@ staudio = st.empty()  # Placeholder for audio playback
 # Add buttons to apply and reset the equalizer settings in the same row
 col0, col1, col2 = st.columns([5, 3, 2])
 
+# Initialize session state for my_recorder_output if it doesn't exist
+if 'my_recorder_output' not in st.session_state:
+    st.session_state.my_recorder_output = None
+
 def audio_callback():
     if st.session_state.my_recorder_output:
         audio_bytes = st.session_state.my_recorder_output['bytes']
