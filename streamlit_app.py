@@ -5,7 +5,25 @@ st.write(
     "This is a simple equalizer app that allows you to adjust the levels of different frequency bands."
 )
 
-# Add buttons to apply and reset the equalizer settings in the same row
+# Initialize session state for slider values and reset iteration
+if 'bass' not in st.session_state:
+    st.session_state.bass = 50
+if 'mid' not in st.session_state:
+    st.session_state.mid = 50
+if 'treble' not in st.session_state:
+    st.session_state.treble = 50
+if 'reset_iteration' not in st.session_state:
+    st.session_state.reset_iteration = 0
+
+# Define a function to reset sliders
+def reset_sliders():
+    st.session_state.bass = 50
+    st.session_state.mid = 50
+    st.session_state.treble = 50
+    st.session_state.reset_iteration += 1
+    st.rerun()
+
+# Layout columns for equalizer controls and actions
 col0, col1, col2 = st.columns([5, 3, 2])
 
 with col0:
@@ -22,17 +40,16 @@ with col0:
 
 with col1:
     col1.subheader("Equalizer Settings")
-    st.write("Adjust the frequency bands:")
-    bass = st.slider("Bass", min_value=0, max_value=100, value=50)
-    mid = st.slider("Mid", min_value=0, max_value=100, value=50)
-    treble = st.slider("Treble", min_value=0, max_value=100, value=50)
+    st.session_state.bass = st.slider("Bass", min_value=0, max_value=100, value=st.session_state.bass,
+                                      key=f"bass_slider_{st.session_state.reset_iteration}")
+    st.session_state.mid = st.slider("Mid", min_value=0, max_value=100, value=st.session_state.mid,
+                                     key=f"mid_slider_{st.session_state.reset_iteration}")
+    st.session_state.treble = st.slider("Treble", min_value=0, max_value=100, value=st.session_state.treble,
+                                        key=f"treble_slider_{st.session_state.reset_iteration}")
 
 with col2:
     col2.subheader("Actions")
     if st.button("Apply Equalizer"):
         st.success("Equalizer settings applied!")
     if st.button("Reset Equalizer"):
-        bass = 50
-        mid = 50
-        treble = 50
-        st.rerun()  # Rerun the app to reset the sliders
+        reset_sliders()
