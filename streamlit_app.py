@@ -45,12 +45,12 @@ with col0:
         if uploaded_file:
             # Read the uploaded audio file
             audio_data, sample_rate = sf.read(uploaded_file)
-            st.audio(uploaded_file.read(), format="audio/wav")
+            st.audio(uploaded_file, format="audio/wav")
     else:
         audio = st.experimental_audio_input("Record Audio", key="audio_input")
         if audio:
             audio_data = np.frombuffer(audio.read(), dtype=np.float32)
-            st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav", data=audio,
+            st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav", data=audio.read(),
                                mime="audio/wav")
 
 with col1:
