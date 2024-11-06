@@ -19,7 +19,12 @@ def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zer
     lowcut_norm = lowcut / nyquist_freq
     highcut_norm = highcut / nyquist_freq
 
-    filter_coefs = signal.firwin(numtaps, [lowcut_norm, highcut_norm], pass_zero=pass_zero)
+    if pass_zero == 'lowpass':
+        filter_coefs = signal.firwin(numtaps, highcut_norm, pass_zero=pass_zero)
+    elif pass_zero == 'highpass':
+        filter_coefs = signal.firwin(numtaps, lowcut_norm, pass_zero=pass_zero)
+    else:
+        filter_coefs = signal.firwin(numtaps, [lowcut_norm, highcut_norm], pass_zero=pass_zero)
     return gain * filter_coefs
 
 def apply_filters(audio_data, bass_gain, mid_gain, treble_gain):

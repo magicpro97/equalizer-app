@@ -99,7 +99,9 @@ with main_container:
                     filtered_audio_buffer.seek(0)
                     st.audio(filtered_audio_buffer, format="audio/wav")
                     st.success("Equalizer settings applied!")
-                    visualize_bands(bass_filtered, mid_filtered, treble_filtered, container=result_container)
+                    # Visualize the frequency bands
+                    filtered_audio_data = filtered_audio_buffer.read()
+                    visualize_audio_file(filtered_audio_data, container=visualize_container)
             else:
                 result_container.warning("Please upload an audio file to apply the equalizer.")
 

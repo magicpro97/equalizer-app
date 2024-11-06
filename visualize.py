@@ -76,6 +76,11 @@ def visualize_audio_file(bytes, container, n_fft=2048, hop_length=512):
 
 def visualize_bands(bass_filtered, mid_filtered, treble_filtered, container):
     for band_audio, band_name in zip([bass_filtered, mid_filtered, treble_filtered], ['Bass', 'Mid', 'Treble']):
+        # Check for NaN or infinite values
+        if not np.isfinite(band_audio).all():
+            st.error(f'{band_name} audio contains NaN or infinite values.')
+            return
+
         spectrogram = librosa.feature.melspectrogram(y=band_audio, sr=SAMPLE_RATE)
         spectrogram_db = librosa.power_to_db(spectrogram, ref=np.max)
 
