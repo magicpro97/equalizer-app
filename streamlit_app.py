@@ -1,9 +1,11 @@
 # main_app.py
+import io
 
-import streamlit as st
 import numpy as np
 import soundfile as sf
-import io
+import streamlit as st
+from pydub import AudioSegment
+
 from fir import apply_filters  # Import the apply_filters function
 from visualize import visualize_audio_file, visualize_bands
 
@@ -35,6 +37,22 @@ uploaded_file = None
 audio_data = None
 sample_rate = 44100  # Default sample rate
 
+def process_in_chunks(uploaded_file, chunk_size_ms=10000):
+    audio_segment = AudioSegment.from_file(uploaded_file, format="mp3")
+    total_length_ms = len(audio_segment)
+
+    audio_data = None
+    for start_ms in range(0, total_length_ms, chunk_size_ms):
+        end_ms = min(start_ms + chunk_size_ms, total_length_ms)
+        chunk = audio_segment[start_ms:end_ms]
+
+        # Process the chunk (convert to numpy, normalize, etc.)
+        audio_data = np.array(chunk.get_array_of_samples())
+        audio_data = audio_data.astype(np.float32)
+        audio_data /= np.iinfo(np.int16).max  # Normalize to [-1, 1]
+
+    return audio_data
+
 main_container = st.container()
 
 result_container = st.container()
@@ -53,22 +71,23 @@ with main_container:
             uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
             if uploaded_file:
                 # Read the uploaded audio file
-                audio_data, sample_rate = sf.read(uploaded_file)
                 st.audio(uploaded_file, format="audio/wav")
+                audio_data = process_in_chunks(uploaded_file)
         else:
             audio = st.experimental_audio_input("Record Audio", key="audio_input")
             if audio:
                 audio_data = np.frombuffer(audio.read(), dtype=np.float32)
-                st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav", data=audio.read(),
-                                mime="audio/wav")
+                st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav",
+                                   data=audio.read(),
+                                   mime="audio/wav")
 
     with col1:
         col1.subheader("Equalizer Settings")
         # Use unique keys for sliders to reset values
         st.session_state.bass = st.slider("Bass", min_value=0, max_value=100, value=st.session_state.bass,
-                                        key=f"bass_slider_{st.session_state.reset_iteration}")
+                                          key=f"bass_slider_{st.session_state.reset_iteration}")
         st.session_state.mid = st.slider("Mid", min_value=0, max_value=100, value=st.session_state.mid,
-                                        key=f"mid_slider_{st.session_state.reset_iteration}")
+                                         key=f"mid_slider_{st.session_state.reset_iteration}")
         st.session_state.treble = st.slider("Treble", min_value=0, max_value=100, value=st.session_state.treble,
                                             key=f"treble_slider_{st.session_state.reset_iteration}")
 
@@ -80,9 +99,11 @@ with main_container:
             mid_gain = st.session_state.mid / 50.0
             treble_gain = st.session_state.treble / 50.0
             if uploaded_file is not None:
-                visualize_audio_file(uploaded_file.read(), container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain, treble_gain=treble_gain)
+                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
+                                     treble_gain=treble_gain)
             elif audio is not None:
-                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain, treble_gain=treble_gain)
+                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
+                                     treble_gain=treble_gain)
             else:
                 result_container.warning("Please upload an audio file to visualize.")
 
@@ -95,14 +116,16 @@ with main_container:
 
                 with result_container:
                     # Process the audio with the filters
-                    filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_data, bass_gain, mid_gain, treble_gain)
+                    filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_data, bass_gain,
+                                                                                                 mid_gain, treble_gain)
                     # Save filtered audio to a buffer and play it
                     filtered_audio_buffer = io.BytesIO()
                     sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav")
                     filtered_audio_buffer.seek(0)
                     st.audio(filtered_audio_buffer, format="audio/wav")
                     st.success("Equalizer settings applied!")
-                    visualize_bands(audio_data, filtered_audio, bass_filtered, mid_filtered, treble_filtered, visualize_container)
+                    visualize_bands(audio_data, filtered_audio, bass_filtered, mid_filtered, treble_filtered,
+                                    visualize_container)
             else:
                 result_container.warning("Please upload an audio file to apply the equalizer.")
 
@@ -110,4 +133,4 @@ with main_container:
             reset_sliders()  # Keep your reset function as is
 
 # with visualize_container:
-    # st.markdown("# Visualize")
+# st.markdown("# Visualize")

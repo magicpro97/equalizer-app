@@ -31,7 +31,7 @@ def bandpass_filter(data, lowcut, highcut, fs, order=5):
 def visualize_audio_file(audio_bytes, container, bass_gain, mid_gain, treble_gain):
     filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_bytes, bass_gain, mid_gain,
                                                                                  treble_gain)
-    origin_audio, _ = sf.read(io.BytesIO(audio_bytes))
+    origin_audio = audio_bytes
     visualize_bands(origin_audio, filtered_audio, bass_filtered, mid_filtered, treble_filtered, container)
 
 def clean_audio_data(audio_data):
