@@ -1,3 +1,5 @@
+import io
+
 import numpy as np
 import matplotlib.pyplot as plt
 import librosa
@@ -23,8 +25,9 @@ def bandpass_filter(data, lowcut, highcut, fs, order=5):
     return filtered_data
 
 # @st.dialog("Visualize dialog")
-def visualize_audio_file(file, container, n_fft=2048, hop_length=512):
-    audio, sr = librosa.load(file)
+def visualize_audio_file(bytes, container, n_fft=2048, hop_length=512):
+    audio_file = io.BytesIO(bytes)
+    audio, sr = librosa.load(audio_file)
 
     # STFT
     stft = librosa.stft(audio, n_fft=2048, hop_length=512)

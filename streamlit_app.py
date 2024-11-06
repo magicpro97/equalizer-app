@@ -31,6 +31,7 @@ def reset_sliders():
     st.rerun()  # Rerun to update slider values immediately
 
 # Initialize audio_data to None
+uploaded_file = None
 audio_data = None
 sample_rate = 44100  # Default sample rate
 
@@ -76,7 +77,9 @@ with main_container:
 
         if st.button("Visualize"):
             if uploaded_file is not None:
-                visualize_audio_file(uploaded_file, container=visualize_container)
+                visualize_audio_file(audio_data, container=visualize_container)
+            elif audio is not None:
+                visualize_audio_file(audio_data, container=visualize_container)
             else:
                 result_container.warning("Please upload an audio file to visualize.")
 
