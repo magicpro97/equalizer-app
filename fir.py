@@ -10,7 +10,7 @@ bass_band = [20, 250]  # Bass frequencies
 mid_band = [250, 4000]  # Mid frequencies
 treble_band = [4000, 20000]  # Treble frequencies
 
-def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zero='bandpass'):
+def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zero=False):
     """
     Create a FIR filter for a given band and gain.
     """

@@ -7,7 +7,7 @@ import streamlit as st
 from pydub import AudioSegment
 
 from fir import apply_filters  # Import the apply_filters function
-from visualize import visualize_audio_file, visualize_bands
+from visualize import visualize_bands
 
 st.title("🎈 Equalizer")
 st.write(
@@ -40,9 +40,11 @@ sample_rate = 44100  # Default sample rate
 def process_in_chunks(uploaded_file, chunk_size_ms=10000):
     audio_segment = AudioSegment.from_file(uploaded_file, format="mp3")
     total_length_ms = len(audio_segment)
+    chunk_size_ms = total_length_ms
 
     audio_data = None
     for start_ms in range(0, total_length_ms, chunk_size_ms):
+        print(f"Processing chunk {start_ms} - {start_ms + chunk_size_ms} ms")
         end_ms = min(start_ms + chunk_size_ms, total_length_ms)
         chunk = audio_segment[start_ms:end_ms]
 
@@ -94,19 +96,6 @@ with main_container:
     with col2:
         col2.subheader("Actions")
 
-        if st.button("Visualize"):
-            bass_gain = st.session_state.bass / 50.0  # Normalize to range 0.0 to 2.0
-            mid_gain = st.session_state.mid / 50.0
-            treble_gain = st.session_state.treble / 50.0
-            if uploaded_file is not None:
-                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
-                                     treble_gain=treble_gain)
-            elif audio is not None:
-                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
-                                     treble_gain=treble_gain)
-            else:
-                result_container.warning("Please upload an audio file to visualize.")
-
         if st.button("Apply Equalizer"):
             if audio_data is not None:
                 # Apply FIR filter based on slider settings
@@ -122,10 +111,17 @@ with main_container:
                     filtered_audio_buffer = io.BytesIO()
                     sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav")
                     filtered_audio_buffer.seek(0)
-                    st.audio(filtered_audio_buffer, format="audio/wav")
-                    st.success("Equalizer settings applied!")
+
                     visualize_bands(audio_data, filtered_audio, bass_filtered, mid_filtered, treble_filtered,
                                     visualize_container)
+
+                    # Make audio sorter than a half duration and speed faster x2
+                    filtered_audio = AudioSegment.from_file(filtered_audio_buffer, format="wav")
+                    filtered_audio = filtered_audio.speedup(playback_speed=2.0)
+                    filtered_audio.export(filtered_audio_buffer, format="wav")
+
+                    st.audio(filtered_audio_buffer, format="audio/wav")
+                    st.success("Equalizer settings applied!")
             else:
                 result_container.warning("Please upload an audio file to apply the equalizer.")
 

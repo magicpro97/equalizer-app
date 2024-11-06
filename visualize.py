@@ -1,12 +1,9 @@
-import io
-
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 import streamlit as st
 from scipy.signal import butter, lfilter
-import soundfile as sf
 
 from fir import SAMPLE_RATE, apply_filters
 
