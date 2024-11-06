@@ -31,21 +31,34 @@ def apply_filters(audio_data, bass_gain, mid_gain, treble_gain):
     mid_filter = create_fir_filter(mid_gain, mid_band)
     treble_filter = create_fir_filter(treble_gain, treble_band)
 
-    # Check if audio_data is stereo or mono
     if audio_data.ndim == 1:  # Mono
         bass_filtered = signal.convolve(audio_data, bass_filter, mode="same")
         mid_filtered = signal.convolve(audio_data, mid_filter, mode="same")
         treble_filtered = signal.convolve(audio_data, treble_filter, mode="same")
-        return bass_filtered + mid_filtered + treble_filtered, bass_filtered, mid_filtered, treble_filtered
+        filtered_audio = bass_filtered + mid_filtered + treble_filtered
+        return filtered_audio, bass_filtered, mid_filtered, treble_filtered
+
     elif audio_data.ndim == 2:  # Stereo
         # Apply filter to each channel separately
-        bass_filtered = signal.convolve(audio_data[:, 0], bass_filter, mode="same")
-        mid_filtered = signal.convolve(audio_data[:, 0], mid_filter, mode="same")
-        treble_filtered = signal.convolve(audio_data[:, 0], treble_filter, mode="same")
+        bass_filtered_left = signal.convolve(audio_data[:, 0], bass_filter, mode="same")
+        mid_filtered_left = signal.convolve(audio_data[:, 0], mid_filter, mode="same")
+        treble_filtered_left = signal.convolve(audio_data[:, 0], treble_filter, mode="same")
 
-        # Combine filtered channels
-        filtered_audio = np.stack((bass_filtered + mid_filtered + treble_filtered,
-                                   bass_filtered + mid_filtered + treble_filtered), axis=-1)
+        bass_filtered_right = signal.convolve(audio_data[:, 1], bass_filter, mode="same")
+        mid_filtered_right = signal.convolve(audio_data[:, 1], mid_filter, mode="same")
+        treble_filtered_right = signal.convolve(audio_data[:, 1], treble_filter, mode="same")
+
+        # Combine filtered channels for left and right
+        filtered_audio_left = bass_filtered_left + mid_filtered_left + treble_filtered_left
+        filtered_audio_right = bass_filtered_right + mid_filtered_right + treble_filtered_right
+
+        # Stack to create a stereo output
+        filtered_audio = np.stack((filtered_audio_left, filtered_audio_right), axis=-1)
+        bass_filtered = np.stack((bass_filtered_left, bass_filtered_right), axis=-1)
+        mid_filtered = np.stack((mid_filtered_left, mid_filtered_right), axis=-1)
+        treble_filtered = np.stack((treble_filtered_left, treble_filtered_right), axis=-1)
+
         return filtered_audio, bass_filtered, mid_filtered, treble_filtered
+
     else:
         raise ValueError("Unsupported audio data dimensionality")

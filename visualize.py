@@ -31,26 +31,43 @@ def bandpass_filter(data, lowcut, highcut, fs, order=5):
 def visualize_audio_file(audio_bytes, container, bass_gain, mid_gain, treble_gain):
     filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_bytes, bass_gain, mid_gain,
                                                                                  treble_gain)
-
-    visualize_bands(bass_filtered, mid_filtered, treble_filtered, container)
+    origin_audio, _ = sf.read(io.BytesIO(audio_bytes))
+    visualize_bands(origin_audio, filtered_audio, bass_filtered, mid_filtered, treble_filtered, container)
 
 def clean_audio_data(audio_data):
     audio_data = np.nan_to_num(audio_data, nan=0.0, posinf=0.0, neginf=0.0)
     return audio_data
 
-def visualize_bands(bass_filtered, mid_filtered, treble_filtered, container):
-    for band_audio, band_name in zip([bass_filtered, mid_filtered, treble_filtered], ['Bass', 'Mid', 'Treble']):
-        band_audio = clean_audio_data(band_audio)
-        spectrogram = librosa.feature.melspectrogram(y=band_audio, sr=SAMPLE_RATE)
-        spectrogram_db = librosa.power_to_db(spectrogram, ref=np.max)
+def visualize_bands(origin_audio, filtered_audio, bass_filtered, mid_filtered, treble_filtered, container):
+    visualize_audio(clean_audio_data(origin_audio), container, SAMPLE_RATE, title="Original Audio")
+    visualize_audio(clean_audio_data(filtered_audio), container, SAMPLE_RATE, title="Filtered Audio")
+    visualize_audio(clean_audio_data(bass_filtered), container, SAMPLE_RATE, title="Bass Band")
+    visualize_audio(clean_audio_data(mid_filtered), container, SAMPLE_RATE, title="Mid Band")
+    visualize_audio(clean_audio_data(treble_filtered), container, SAMPLE_RATE, title="Treble Band")
 
-        plt.figure(figsize=(10, 4))
-        librosa.display.specshow(spectrogram_db, sr=SAMPLE_RATE, x_axis='time', y_axis='mel')
-        plt.colorbar(format='%+2.0f dB')
-        plt.title(f'{band_name} Frequency Spectrogram')
-        plt.tight_layout()
-        container.pyplot(plt)
-        plt.close()
+def visualize_audio(audio_data, container, sample_rate=SAMPLE_RATE,title="Audio Signal"):
+    """
+    Visualize the audio signal in time and frequency domains.
+    """
+    # Plot the waveform
+    plt.figure(figsize=(14, 5))
+    librosa.display.waveshow(audio_data, sr=sample_rate)
+    plt.title(f"Waveform - {title}")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+    container.pyplot(plt)
+    plt.show()
+
+    # Plot the spectrogram
+    plt.figure(figsize=(14, 5))
+    D = librosa.amplitude_to_db(np.abs(librosa.stft(audio_data)), ref=np.max)
+    librosa.display.specshow(D, sr=sample_rate, x_axis="time", y_axis="log")
+    plt.colorbar(format="%+2.0f dB")
+    plt.title(f"Spectrogram - {title}")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    container.pyplot(plt)
+    plt.show()
 
 # Archive ------------------------------
 def filter_audio(audio_data, sample_rate, freq_range):
