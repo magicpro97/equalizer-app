@@ -10,7 +10,7 @@ bass_band = [20, 250]  # Bass frequencies
 mid_band = [250, 4000]  # Mid frequencies
 treble_band = [4000, 20000]  # Treble frequencies
 
-def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zero='lowpass'):
+def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zero='bandpass'):
     """
     Create a FIR filter for a given band and gain.
     """
@@ -19,12 +19,7 @@ def create_fir_filter(gain, band, numtaps=101, sample_rate=SAMPLE_RATE, pass_zer
     lowcut_norm = lowcut / nyquist_freq
     highcut_norm = highcut / nyquist_freq
 
-    if pass_zero == 'lowpass':
-        filter_coefs = signal.firwin(numtaps, highcut_norm, pass_zero=pass_zero)
-    elif pass_zero == 'highpass':
-        filter_coefs = signal.firwin(numtaps, lowcut_norm, pass_zero=pass_zero)
-    else:
-        filter_coefs = signal.firwin(numtaps, [lowcut_norm, highcut_norm], pass_zero=pass_zero)
+    filter_coefs = signal.firwin(numtaps, [lowcut_norm, highcut_norm], pass_zero=pass_zero)
     return gain * filter_coefs
 
 def apply_filters(audio_data, bass_gain, mid_gain, treble_gain):
@@ -32,9 +27,9 @@ def apply_filters(audio_data, bass_gain, mid_gain, treble_gain):
     Apply FIR filters based on slider values.
     """
     # Create filters for each frequency band
-    bass_filter = create_fir_filter(bass_gain, bass_band, pass_zero='lowpass')
-    mid_filter = create_fir_filter(mid_gain, mid_band, pass_zero='bandpass')
-    treble_filter = create_fir_filter(treble_gain, treble_band, pass_zero='highpass')
+    bass_filter = create_fir_filter(bass_gain, bass_band)
+    mid_filter = create_fir_filter(mid_gain, mid_band)
+    treble_filter = create_fir_filter(treble_gain, treble_band)
 
     # Check if audio_data is stereo or mono
     if audio_data.ndim == 1:  # Mono

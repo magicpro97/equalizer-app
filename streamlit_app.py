@@ -76,10 +76,13 @@ with main_container:
         col2.subheader("Actions")
 
         if st.button("Visualize"):
+            bass_gain = st.session_state.bass / 50.0  # Normalize to range 0.0 to 2.0
+            mid_gain = st.session_state.mid / 50.0
+            treble_gain = st.session_state.treble / 50.0
             if uploaded_file is not None:
-                visualize_audio_file(audio_data, container=visualize_container)
+                visualize_audio_file(uploaded_file.read(), container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain, treble_gain=treble_gain)
             elif audio is not None:
-                visualize_audio_file(audio_data, container=visualize_container)
+                visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain, treble_gain=treble_gain)
             else:
                 result_container.warning("Please upload an audio file to visualize.")
 
@@ -99,9 +102,7 @@ with main_container:
                     filtered_audio_buffer.seek(0)
                     st.audio(filtered_audio_buffer, format="audio/wav")
                     st.success("Equalizer settings applied!")
-                    # Visualize the frequency bands
-                    filtered_audio_data = filtered_audio_buffer.read()
-                    visualize_audio_file(filtered_audio_data, container=visualize_container)
+                    visualize_bands(bass_filtered, mid_filtered, treble_filtered, visualize_container)
             else:
                 result_container.warning("Please upload an audio file to apply the equalizer.")
 

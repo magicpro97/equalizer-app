@@ -1,12 +1,15 @@
 import io
 
-import numpy as np
-import matplotlib.pyplot as plt
 import librosa
+import matplotlib.pyplot as plt
+import numpy as np
 import plotly.express as px
 import streamlit as st
 from scipy.signal import butter, lfilter
-from fir import SAMPLE_RATE
+import soundfile as sf
+
+from fir import SAMPLE_RATE, apply_filters
+
 
 def bandpass_filter(data, lowcut, highcut, fs, order=5):
     nyquist_freq = 0.5 * fs
@@ -25,62 +28,19 @@ def bandpass_filter(data, lowcut, highcut, fs, order=5):
     return filtered_data
 
 # @st.dialog("Visualize dialog")
-def visualize_audio_file(bytes, container, n_fft=2048, hop_length=512):
-    audio_file = io.BytesIO(bytes)
-    audio, sr = librosa.load(audio_file)
+def visualize_audio_file(audio_bytes, container, bass_gain, mid_gain, treble_gain):
+    filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_bytes, bass_gain, mid_gain,
+                                                                                 treble_gain)
 
-    # STFT
-    stft = librosa.stft(audio, n_fft=2048, hop_length=512)
-    stft_magnitude = np.abs(stft)
+    visualize_bands(bass_filtered, mid_filtered, treble_filtered, container)
 
-    # Get frequency bins
-    freq = librosa.fft_frequencies(sr=sr, n_fft=2048)
-
-    # Define frequency bands
-    bass_freq_range = (20, 250)
-    mid_freq_range = (250, 4000)
-    treble_freq_range = (4000, sr//2)
-
-    # Create masks for each frequency band
-    bass_mask = (freq >= bass_freq_range[0]) & (freq <= bass_freq_range[1])
-    mid_mask = (freq >= mid_freq_range[0]) & (freq <= mid_freq_range[1])
-    treble_mask = (freq >= treble_freq_range[0]) & (freq <= treble_freq_range[1])
-
-    # Apply masks to the STFT magnitude
-    bass_stft = stft_magnitude.copy()
-    bass_stft[~bass_mask] = 0
-
-    mid_stft = stft_magnitude.copy()
-    mid_stft[~mid_mask] = 0
-
-    treble_stft = stft_magnitude.copy()
-    treble_stft[~treble_mask] = 0
-
-    # Convert back to time-domain signals
-    bass_audio = librosa.istft(bass_stft, hop_length=512)
-    mid_audio = librosa.istft(mid_stft, hop_length=512)
-    treble_audio = librosa.istft(treble_stft, hop_length=512)
-
-    container.markdown("# Visualize")
-    # Visualize each band's spectrogram
-    for band_audio, band_name in zip([bass_audio, mid_audio, treble_audio], ['Bass', 'Mid', 'Treble']):
-        spectrogram = librosa.feature.melspectrogram(y=band_audio, sr=sr)
-        spectrogram_db = librosa.power_to_db(spectrogram, ref=np.max)
-
-        plt.figure(figsize=(10, 4))
-        librosa.display.specshow(spectrogram_db, sr=sr, x_axis='time', y_axis='mel')
-        plt.colorbar(format='%+2.0f dB')
-        plt.title(f'{band_name} Frequency Spectrogram')
-        plt.tight_layout()
-        container.pyplot(plt)
+def clean_audio_data(audio_data):
+    audio_data = np.nan_to_num(audio_data, nan=0.0, posinf=0.0, neginf=0.0)
+    return audio_data
 
 def visualize_bands(bass_filtered, mid_filtered, treble_filtered, container):
     for band_audio, band_name in zip([bass_filtered, mid_filtered, treble_filtered], ['Bass', 'Mid', 'Treble']):
-        # Check for NaN or infinite values
-        if not np.isfinite(band_audio).all():
-            st.error(f'{band_name} audio contains NaN or infinite values.')
-            return
-
+        band_audio = clean_audio_data(band_audio)
         spectrogram = librosa.feature.melspectrogram(y=band_audio, sr=SAMPLE_RATE)
         spectrogram_db = librosa.power_to_db(spectrogram, ref=np.max)
 
@@ -90,6 +50,7 @@ def visualize_bands(bass_filtered, mid_filtered, treble_filtered, container):
         plt.title(f'{band_name} Frequency Spectrogram')
         plt.tight_layout()
         container.pyplot(plt)
+        plt.close()
 
 # Archive ------------------------------
 def filter_audio(audio_data, sample_rate, freq_range):
