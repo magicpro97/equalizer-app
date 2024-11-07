@@ -36,13 +36,14 @@ def clean_audio_data(audio_data):
     return audio_data
 
 def visualize_bands(origin_audio, filtered_audio, bass_filtered, mid_filtered, treble_filtered, container):
-    visualize_audio(clean_audio_data(origin_audio), container, SAMPLE_RATE, title="Original Audio")
-    visualize_audio(clean_audio_data(filtered_audio), container, SAMPLE_RATE, title="Filtered Audio")
-    visualize_audio(clean_audio_data(bass_filtered), container, SAMPLE_RATE, title="Bass Band")
-    visualize_audio(clean_audio_data(mid_filtered), container, SAMPLE_RATE, title="Mid Band")
-    visualize_audio(clean_audio_data(treble_filtered), container, SAMPLE_RATE, title="Treble Band")
+    visualize_audio(origin_audio, container, SAMPLE_RATE, title="Original Audio")
+    visualize_audio(filtered_audio, container, SAMPLE_RATE, title="Filtered Audio")
+    visualize_audio(bass_filtered, container, SAMPLE_RATE, title="Bass Band")
+    visualize_audio(mid_filtered, container, SAMPLE_RATE, title="Mid Band")
+    visualize_audio(treble_filtered, container, SAMPLE_RATE, title="Treble Band")
 
 def visualize_audio(audio_data, container, sample_rate=SAMPLE_RATE,title="Audio Signal"):
+    audio_data = clean_audio_data(audio_data)
     """
     Visualize the audio signal in time and frequency domains.
     """
@@ -53,18 +54,19 @@ def visualize_audio(audio_data, container, sample_rate=SAMPLE_RATE,title="Audio 
     plt.xlabel("Time (s)")
     plt.ylabel("Amplitude")
     container.pyplot(plt)
-    plt.show()
+    plt.close()
 
     # Plot the spectrogram
     plt.figure(figsize=(14, 5))
     D = librosa.amplitude_to_db(np.abs(librosa.stft(audio_data)), ref=np.max)
+    D = clean_audio_data(D)
     librosa.display.specshow(D, sr=sample_rate, x_axis="time", y_axis="log")
     plt.colorbar(format="%+2.0f dB")
     plt.title(f"Spectrogram - {title}")
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
     container.pyplot(plt)
-    plt.show()
+    plt.close()
 
 # Archive ------------------------------
 def filter_audio(audio_data, sample_rate, freq_range):
