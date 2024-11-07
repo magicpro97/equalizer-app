@@ -42,25 +42,23 @@ def visualize_bands(origin_audio, filtered_audio, bass_filtered, mid_filtered, t
     visualize_audio(mid_filtered, container, SAMPLE_RATE, title="Mid Band")
     visualize_audio(treble_filtered, container, SAMPLE_RATE, title="Treble Band")
 
-def visualize_audio(audio_data, container, sample_rate=SAMPLE_RATE,title="Audio Signal"):
+def visualize_audio(audio_data, container, sample_rate=SAMPLE_RATE,title="Audio Signal", n_fft=1024, hop_length=512):
+    # Clean audio data
     audio_data = clean_audio_data(audio_data)
-    """
-    Visualize the audio signal in time and frequency domains.
-    """
+
     # Plot the waveform
-    plt.figure(figsize=(14, 5))
-    librosa.display.waveshow(audio_data, sr=sample_rate)
+    plt.figure(figsize=(10, 4))
+    librosa.display.waveshow(audio_data, sr=sample_rate, x_axis='time')
     plt.title(f"Waveform - {title}")
     plt.xlabel("Time (s)")
     plt.ylabel("Amplitude")
     container.pyplot(plt)
     plt.close()
 
-    # Plot the spectrogram
-    plt.figure(figsize=(14, 5))
-    D = librosa.amplitude_to_db(np.abs(librosa.stft(audio_data)), ref=np.max)
-    D = clean_audio_data(D)
-    librosa.display.specshow(D, sr=sample_rate, x_axis="time", y_axis="log")
+    # Plot the spectrogram with optimized parameters
+    plt.figure(figsize=(10, 4))
+    D = librosa.amplitude_to_db(np.abs(librosa.stft(audio_data, n_fft=n_fft, hop_length=hop_length)), ref=np.max)
+    librosa.display.specshow(D, sr=sample_rate, x_axis="time", y_axis="log", hop_length=hop_length)
     plt.colorbar(format="%+2.0f dB")
     plt.title(f"Spectrogram - {title}")
     plt.xlabel("Time (s)")
