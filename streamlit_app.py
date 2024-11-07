@@ -36,9 +36,10 @@ def reset_sliders():
 uploaded_file = None
 audio_data = None
 sample_rate = 44100  # Default sample rate
+bit_depth = 'PCM_24'  # Use 24-bit depth
 
 def process_in_chunks(uploaded_file, chunk_size_ms=10000):
-    audio_segment = AudioSegment.from_file(uploaded_file, format="mp3")
+    audio_segment = AudioSegment.from_file(uploaded_file)
     total_length_ms = len(audio_segment)
     chunk_size_ms = total_length_ms
 
@@ -123,16 +124,16 @@ with main_container:
                                                                                                  mid_gain, treble_gain)
                     # Save filtered audio to a buffer and play it
                     filtered_audio_buffer = io.BytesIO()
-                    sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav")
+                    sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav", subtype=bit_depth)
                     filtered_audio_buffer.seek(0)
 
                     visualize_bands(audio_data, filtered_audio, bass_filtered, mid_filtered, treble_filtered,
                                     visualize_container)
 
                     # Make audio sorter than a half duration and speed faster x2
-                    filtered_audio = AudioSegment.from_file(filtered_audio_buffer, format="wav")
-                    filtered_audio = filtered_audio.speedup(playback_speed=2.0)
-                    filtered_audio.export(filtered_audio_buffer, format="wav")
+                    # filtered_audio = AudioSegment.from_file(filtered_audio_buffer, format="wav")
+                    # filtered_audio = filtered_audio.speedup(playback_speed=2.0)
+                    # filtered_audio.export(filtered_audio_buffer, format="wav")
 
                     st.audio(filtered_audio_buffer, format="audio/wav")
                     st.success("Equalizer settings applied!")
