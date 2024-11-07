@@ -1,3 +1,4 @@
+import librosa
 import numpy as np
 import scipy.signal as signal
 
@@ -67,3 +68,18 @@ def apply_filters(audio_data, bass_gain, mid_gain, treble_gain):
             treble_filtered_output[start:end, 1] = treble_block_right
 
     return bass_filtered_output + mid_filtered_output + treble_filtered_output, bass_filtered_output, mid_filtered_output, treble_filtered_output
+
+def speed_up_audio(audio_data, speed_factor=2.0):
+    """
+    Speed up audio by a specified factor without changing pitch.
+
+    Parameters:
+    - audio_data: np.ndarray, audio waveform
+    - speed_factor: float, factor by which to speed up (e.g., 2.0 to double speed)
+
+    Returns:
+    - sped_up_audio: np.ndarray, sped-up audio waveform
+    """
+    # Apply time-stretching
+    sped_up_audio = librosa.effects.time_stretch(audio_data, rate=speed_factor)
+    return sped_up_audio

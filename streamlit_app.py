@@ -6,7 +6,7 @@ import soundfile as sf
 import streamlit as st
 from pydub import AudioSegment
 
-from fir import apply_filters  # Import the apply_filters function
+from fir import apply_filters, speed_up_audio  # Import the apply_filters function
 from visualize import visualize_bands #, visualize_audio_file
 
 st.title("🎈 Equalizer")
@@ -76,11 +76,13 @@ with main_container:
                 # Read the uploaded audio file
                 st.audio(uploaded_file, format="audio/wav")
                 audio_data = process_in_chunks(uploaded_file)
+                audio_data = speed_up_audio(audio_data, 2.0)
         else:
             audio = st.experimental_audio_input("Record Audio", key="audio_input")
             if audio:
                 audio_data = np.frombuffer(audio.read(), dtype=np.int16).astype(np.float32)
                 audio_data /= np.iinfo(np.int16).max  # Normalize to [-1, 1]
+                audio_data = speed_up_audio(audio_data, 2.0)
                 st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav",
                                    data=audio.read(),
                                    mime="audio/wav")
