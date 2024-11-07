@@ -7,7 +7,7 @@ import streamlit as st
 from pydub import AudioSegment
 
 from fir import apply_filters  # Import the apply_filters function
-from visualize import visualize_bands
+from visualize import visualize_bands #, visualize_audio_file
 
 st.title("🎈 Equalizer")
 st.write(
@@ -95,6 +95,19 @@ with main_container:
 
     with col2:
         col2.subheader("Actions")
+
+        # if st.button("Visualize"):
+        #     bass_gain = st.session_state.bass / 50.0  # Normalize to range 0.0 to 2.0
+        #     mid_gain = st.session_state.mid / 50.0
+        #     treble_gain = st.session_state.treble / 50.0
+        #     if uploaded_file is not None:
+        #         visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
+        #                             treble_gain=treble_gain)
+        #     elif audio is not None:
+        #         visualize_audio_file(audio_data, container=visualize_container, bass_gain=bass_gain, mid_gain=mid_gain,
+        #                             treble_gain=treble_gain)
+        #     else:
+        #         result_container.warning("Please upload an audio file to visualize.")
 
         if st.button("Apply Equalizer"):
             if audio_data is not None:
