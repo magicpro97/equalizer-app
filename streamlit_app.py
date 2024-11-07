@@ -78,7 +78,8 @@ with main_container:
         else:
             audio = st.experimental_audio_input("Record Audio", key="audio_input")
             if audio:
-                audio_data = np.frombuffer(audio.read(), dtype=np.float32)
+                audio_data = np.frombuffer(audio.read(), dtype=np.int16).astype(np.float32)
+                audio_data /= np.iinfo(np.int16).max  # Normalize to [-1, 1]
                 st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav",
                                    data=audio.read(),
                                    mime="audio/wav")
