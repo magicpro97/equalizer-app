@@ -6,3 +6,5 @@ plotly
 librosa
 matplotlib
 pydub
+sounddevice
+pyaudio
