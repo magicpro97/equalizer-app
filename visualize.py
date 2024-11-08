@@ -7,7 +7,9 @@ from fir import SAMPLE_RATE, apply_filters, apply_bandpass_filter
 
 
 def visualize_audio_file(audio_bytes, container, bass_gain, mid_gain, treble_gain):
+    print(f"Length original audio bytes: {len(audio_bytes)}")
     filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_bytes, bass_gain, mid_gain, treble_gain)
+    print(f"Length filtered audio bytes: {len(filtered_audio)}")
     bass_original = apply_bandpass_filter(audio_bytes, 20, 250, 1.0, apply_gain=False)
     mid_original = apply_bandpass_filter(audio_bytes, 250, 4000, 1.0, apply_gain=False)
     treble_original = apply_bandpass_filter(audio_bytes, 4000, 20000, 1.0, apply_gain=False)

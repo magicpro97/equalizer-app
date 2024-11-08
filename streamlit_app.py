@@ -77,16 +77,19 @@ with tab1:
             if source == "File Upload":
                 uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav"])
                 if uploaded_file:
+                    print(uploaded_file.type)
                     # Read the uploaded audio file
                     st.audio(uploaded_file, format="audio/wav")
                     audio_data = process_in_chunks(uploaded_file)
+                    # if (uploaded_file.type == "audio/mpeg"):
                     audio_data = speed_up_audio(audio_data, 2.0)
             else:
                 audio = st.audio_input("Record Audio", key="audio_input")
                 if audio:
                     audio_data = np.frombuffer(audio.read(), dtype=np.int16).astype(np.float32)
                     audio_data /= np.iinfo(np.int16).max  # Normalize to [-1, 1]
-                    audio_data = speed_up_audio(audio_data, 2.0)
+                    audio_data = audio_data[:int(len(audio_data)/2)]
+                    # audio_data = audio.read() #speed_up_audio(audio_data, 2.0)
                     st.download_button(label="Download the recorded audio", file_name="recorded_audio.wav",
                                        data=audio.read(),
                                        mime="audio/wav")
@@ -112,7 +115,8 @@ with tab1:
                     treble_gain = st.session_state.treble / 50.0
 
                     with result_container:
-                        filtered_audio, bass_filtered, mid_filtered, treble_filtered = visualize_audio_file(audio_data, visualize_container, bass_gain, mid_gain, treble_gain)
+
+                        filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_data, bass_gain, mid_gain, treble_gain)
                         # Save filtered audio to a buffer and play it
                         filtered_audio_buffer = io.BytesIO()
                         sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav", subtype=bit_depth)
@@ -120,6 +124,8 @@ with tab1:
 
                         st.audio(filtered_audio_buffer, format="audio/wav")
                         st.success("Equalizer settings applied!")
+
+                        visualize_audio_file(audio_data, visualize_container, bass_gain, mid_gain, treble_gain)
                 else:
                     result_container.warning("Please upload an audio file to apply the equalizer.")
 
