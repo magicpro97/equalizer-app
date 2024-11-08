@@ -204,7 +204,7 @@ with tab2:
                 except queue.Empty:
                     pass
 
-                time.sleep(0.1)  # Adjust sleep time for smoother updates
+                time.sleep(0.05)  # Adjust sleep time for smoother updates
 
     # Stop button to break the loop
     if st.button('Stop Audio', key='stop_button'):
