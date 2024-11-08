@@ -6,5 +6,7 @@ plotly
 librosa
 matplotlib
 pydub
+ipywidgets
+memory_profiler
 sounddevice
 pyaudio
