@@ -6,8 +6,8 @@ import soundfile as sf
 import streamlit as st
 from pydub import AudioSegment
 
-from fir import apply_filters, speed_up_audio  # Import the apply_filters function
-from visualize import visualize_bands #, visualize_audio_file
+from fir import speed_up_audio  # Import the apply_filters function
+from visualize import visualize_audio_file
 
 st.title("🎈 Equalizer")
 st.write(
@@ -78,7 +78,7 @@ with main_container:
                 audio_data = process_in_chunks(uploaded_file)
                 audio_data = speed_up_audio(audio_data, 2.0)
         else:
-            audio = st.experimental_audio_input("Record Audio", key="audio_input")
+            audio = st.audio_input("Record Audio", key="audio_input")
             if audio:
                 audio_data = np.frombuffer(audio.read(), dtype=np.int16).astype(np.float32)
                 audio_data /= np.iinfo(np.int16).max  # Normalize to [-1, 1]
@@ -121,21 +121,11 @@ with main_container:
                 treble_gain = st.session_state.treble / 50.0
 
                 with result_container:
-                    # Process the audio with the filters
-                    filtered_audio, bass_filtered, mid_filtered, treble_filtered = apply_filters(audio_data, bass_gain,
-                                                                                                 mid_gain, treble_gain)
+                    filtered_audio, bass_filtered, mid_filtered, treble_filtered = visualize_audio_file(audio_data, visualize_container, bass_gain, mid_gain, treble_gain)
                     # Save filtered audio to a buffer and play it
                     filtered_audio_buffer = io.BytesIO()
                     sf.write(filtered_audio_buffer, filtered_audio, sample_rate, format="wav", subtype=bit_depth)
                     filtered_audio_buffer.seek(0)
-
-                    visualize_bands(audio_data, filtered_audio, bass_filtered, mid_filtered, treble_filtered,
-                                    visualize_container)
-
-                    # Make audio sorter than a half duration and speed faster x2
-                    # filtered_audio = AudioSegment.from_file(filtered_audio_buffer, format="wav")
-                    # filtered_audio = filtered_audio.speedup(playback_speed=2.0)
-                    # filtered_audio.export(filtered_audio_buffer, format="wav")
 
                     st.audio(filtered_audio_buffer, format="audio/wav")
                     st.success("Equalizer settings applied!")
